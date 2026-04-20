@@ -1,0 +1,64 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Outfit:wght@300;400;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-0: #faf7f2;
+  --bg-1: #f5ede2;
+  --ink: #202124;
+  --ink-soft: #59606b;
+  --card: #fffdfa;
+  --accent: #0b6e4f;
+  --accent-2: #ef8f00;
+  --danger: #bf1e2e;
+  --ring: rgba(11, 110, 79, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Outfit", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 20% 10%, rgba(239, 143, 0, 0.16), transparent 28%),
+    radial-gradient(circle at 85% 20%, rgba(11, 110, 79, 0.18), transparent 34%),
+    linear-gradient(135deg, var(--bg-0), var(--bg-1));
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: "Space Grotesk", sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.glass-card {
+  background: color-mix(in srgb, var(--card) 85%, white 15%);
+  border: 1px solid rgba(32, 33, 36, 0.08);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  border-radius: 1rem;
+}
+
+.fade-up {
+  animation: fadeUp 0.55s ease both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
