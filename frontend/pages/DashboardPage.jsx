@@ -39,6 +39,25 @@ export default function DashboardPage() {
     "3. Continue using stats and score while AI service recovers."
   ].join("\n");
 
+  function buildAIErrorFallback(message) {
+    return [
+      "Strengths:",
+      "1. Core GitHub metrics and score are loaded successfully.",
+      "2. Dashboard data remains available while AI retries.",
+      "3. You can still export and review quantitative stats.",
+      "",
+      "Weaknesses:",
+      `1. ${message || "AI insights request failed."}`,
+      "2. Qualitative analysis could not be generated right now.",
+      "3. AI provider may be rate-limited or temporarily unavailable.",
+      "",
+      "Improvements:",
+      "1. Recheck Gemini API key and GEMINI_MODEL value in backend .env.",
+      "2. Keep Hugging Face key configured for fallback behavior.",
+      "3. Retry the dashboard after restarting backend server."
+    ].join("\n");
+  }
+
   useEffect(() => {
     if (!username) return;
 
@@ -68,7 +87,11 @@ export default function DashboardPage() {
 
           setInsightsText(insightsRes?.insights || insightsRes || "");
         } catch (aiError) {
-          setInsightsText(aiFallbackText);
+          const aiMessage =
+            aiError?.response?.data?.error?.message ||
+            aiError?.message ||
+            "AI insights service is currently unavailable.";
+          setInsightsText(buildAIErrorFallback(aiMessage));
         }
       } catch (apiError) {
         const message =

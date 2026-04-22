@@ -60,6 +60,11 @@ function isNetworkError(error) {
   return !error?.response;
 }
 
+function isRetriableServerError(error) {
+  const status = error?.response?.status;
+  return typeof status === "number" && status >= 500;
+}
+
 async function requestWithAutoBase(requestConfig) {
   const preferredBaseUrl = await getBackendBaseUrl();
   const orderedBaseUrls = [
@@ -81,6 +86,12 @@ async function requestWithAutoBase(requestConfig) {
       return response;
     } catch (error) {
       if (isNetworkError(error)) {
+        lastConnectionError = error;
+        resolvedBaseUrl = "";
+        continue;
+      }
+
+      if (isRetriableServerError(error)) {
         lastConnectionError = error;
         resolvedBaseUrl = "";
         continue;
