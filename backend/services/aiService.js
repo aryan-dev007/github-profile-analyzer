@@ -1,9 +1,7 @@
 const axios = require("axios");
 const {
   GEMINI_API_KEY,
-  GEMINI_MODEL,
-  HUGGING_FACE_API_KEY,
-  HUGGING_FACE_MODEL
+  GEMINI_MODEL
 } = require("../config/env");
 const AppError = require("../utils/appError");
 const { formatAIResponse } = require("../utils/formatAIResponse");
@@ -13,10 +11,12 @@ const geminiClient = axios.create({
   timeout: 30000
 });
 
-const hfClient = axios.create({
-  baseURL: "https://api-inference.huggingface.co/models",
-  timeout: 30000
-});
+const AI_INSIGHTS_CACHE_TTL_MS = 10 * 60 * 1000;
+const AI_MAX_RETRIES = 3;
+const AI_RETRY_BASE_DELAY_MS = 500;
+const AI_RETRY_MAX_DELAY_MS = 8000;
+const aiInsightsCache = new Map();
+const aiInsightsInflight = new Map();
 
 const GEMINI_DEFAULT_MODEL_CANDIDATES = [
   "gemini-2.0-flash",
@@ -48,17 +48,6 @@ function extractProviderErrorMessage(error) {
   return "";
 }
 
-function shouldFallbackToHuggingFace(error) {
-  const status = error?.statusCode || error?.response?.status;
-  const code = error?.code;
-
-  if (!status) {
-    return ["ECONNABORTED", "ECONNRESET", "ENOTFOUND", "ETIMEDOUT"].includes(code);
-  }
-
-  return status === 408 || status === 429 || status >= 500;
-}
-
 function buildPrompt({ repos, stars, languages }) {
   return [
     "You are a technical reviewer.",
@@ -86,101 +75,85 @@ function buildPrompt({ repos, stars, languages }) {
   ].join("\n");
 }
 
-function buildLocalFallbackInsights(payload = {}) {
-  const repos = Number(payload.repos || 0);
-  const stars = Number(payload.stars || 0);
-  const languagesCount = Array.isArray(payload.languages)
-    ? payload.languages.length
-    : 0;
-
-  const strengths = [
-    repos >= 10
-      ? "Maintains a healthy number of public repositories."
-      : "Has an initial project portfolio that can be expanded.",
-    stars >= 20
-      ? "Demonstrates visible community interest through stars."
-      : "Has room to improve project discoverability and visibility.",
-    languagesCount >= 3
-      ? "Shows practical versatility across multiple languages."
-      : "Can increase stack breadth with a few focused language additions."
-  ];
-
-  const weaknesses = [
-    "Live AI provider response is temporarily unavailable.",
-    repos < 10
-      ? "Repository volume is still growing and may limit profile depth."
-      : "Repository quality signals can be strengthened with better documentation.",
-    stars < 20
-      ? "Star count indicates opportunity to improve project reach."
-      : "Some strong projects may still need clearer technical positioning."
-  ];
-
-  const improvements = [
-    "Add polished READMEs and architecture notes to top repositories.",
-    "Prioritize one flagship project with tests, CI, and releases.",
-    "Re-run AI insights later for refreshed qualitative analysis."
-  ];
-
-  return formatAIResponse(
-    [
-      "Strengths:",
-      `1. ${strengths[0]}`,
-      `2. ${strengths[1]}`,
-      `3. ${strengths[2]}`,
-      "",
-      "Weaknesses:",
-      `1. ${weaknesses[0]}`,
-      `2. ${weaknesses[1]}`,
-      `3. ${weaknesses[2]}`,
-      "",
-      "Improvements:",
-      `1. ${improvements[0]}`,
-      `2. ${improvements[1]}`,
-      `3. ${improvements[2]}`
-    ].join("\n")
-  );
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function buildPayloadKey(payload) {
+  const languages = Array.isArray(payload?.languages)
+    ? [...payload.languages].map(String).sort()
+    : [String(payload?.languages || "")];
+
+  return JSON.stringify({
+    repos: payload?.repos || 0,
+    stars: payload?.stars || 0,
+    languages
+  });
+}
+
+function getCachedInsights(cacheKey) {
+  const cached = aiInsightsCache.get(cacheKey);
+  if (!cached) return null;
+
+  if (cached.expiresAt <= Date.now()) {
+    aiInsightsCache.delete(cacheKey);
+    return null;
+  }
+
+  return cached.data;
+}
+
+function setCachedInsights(cacheKey, data) {
+  aiInsightsCache.set(cacheKey, {
+    data,
+    expiresAt: Date.now() + AI_INSIGHTS_CACHE_TTL_MS
+  });
+}
+
+function getRetryDelayMs(attempt, retryAfterHeader) {
+  const retryAfterSeconds = Number(retryAfterHeader);
+  if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) {
+    return Math.min(retryAfterSeconds * 1000, AI_RETRY_MAX_DELAY_MS);
+  }
+
+  const jitter = Math.floor(Math.random() * 200);
+  const delay = AI_RETRY_BASE_DELAY_MS * 2 ** attempt + jitter;
+  return Math.min(delay, AI_RETRY_MAX_DELAY_MS);
+}
+
+function shouldRetryGemini(error) {
+  if (!error?.response) return true;
+
+  const status = error.response?.status;
+  return status === 408 || status === 429 || (status >= 500 && status < 600);
+}
 async function generateAIInsights(payload) {
-  if (!GEMINI_API_KEY && !HUGGING_FACE_API_KEY) {
-    return buildLocalFallbackInsights(payload);
-  }
-
-  let geminiError = null;
-  let huggingFaceError = null;
-
-  if (GEMINI_API_KEY) {
-    try {
-      return await generateWithGemini(payload);
-    } catch (error) {
-      geminiError = error;
-
-      if (!HUGGING_FACE_API_KEY || !shouldFallbackToHuggingFace(error)) {
-        throw error;
-      }
-    }
-  }
-
-  if (HUGGING_FACE_API_KEY) {
-    try {
-      return await generateWithHuggingFace(payload);
-    } catch (error) {
-      huggingFaceError = error;
-    }
-  }
-
-  if (geminiError || huggingFaceError) {
-    const geminiMessage = geminiError?.message ? `Gemini: ${geminiError.message}` : "";
-    const hfMessage = huggingFaceError?.message ? `HuggingFace: ${huggingFaceError.message}` : "";
-    const errorSummary = [geminiMessage, hfMessage].filter(Boolean).join(" | ");
-    console.warn(
-      `AI providers unavailable. Serving local fallback insights.${
-        errorSummary ? ` ${errorSummary}` : ""
-      }`
+  if (!GEMINI_API_KEY) {
+    throw new AppError(
+      "No AI provider configured. Set GEMINI_API_KEY to enable live Gemini insights.",
+      500
     );
   }
 
-  return buildLocalFallbackInsights(payload);
+  const cacheKey = buildPayloadKey(payload);
+  const cached = getCachedInsights(cacheKey);
+  if (cached) return cached;
+
+  if (aiInsightsInflight.has(cacheKey)) {
+    return aiInsightsInflight.get(cacheKey);
+  }
+
+  const inflight = generateWithGemini(payload)
+    .then((insights) => {
+      setCachedInsights(cacheKey, insights);
+      return insights;
+    })
+    .finally(() => {
+      aiInsightsInflight.delete(cacheKey);
+    });
+
+  aiInsightsInflight.set(cacheKey, inflight);
+  return inflight;
 }
 
 function buildGeminiModelCandidates() {
@@ -197,26 +170,7 @@ async function generateWithGemini(payload) {
 
   for (const model of modelsToTry) {
     try {
-      const response = await geminiClient.post(
-        `/models/${model}:generateContent`,
-        {
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: buildPrompt(payload) }]
-            }
-          ],
-          generationConfig: {
-            temperature: 0.4,
-            maxOutputTokens: 400
-          }
-        },
-        {
-          params: {
-            key: GEMINI_API_KEY
-          }
-        }
-      );
+      const response = await callGeminiWithRetry(model, payload);
 
       const data = response.data;
       const rawText =
@@ -270,56 +224,44 @@ async function generateWithGemini(payload) {
   throw lastError || new AppError("Gemini model configuration is invalid", 400);
 }
 
-async function generateWithHuggingFace(payload) {
-  try {
-    const response = await hfClient.post(
-      `/${HUGGING_FACE_MODEL}`,
-      {
-        inputs: buildPrompt(payload),
-        parameters: {
-          max_new_tokens: 350,
-          temperature: 0.4,
-          return_full_text: false
+async function callGeminiWithRetry(model, payload) {
+  let lastError = null;
+
+  for (let attempt = 0; attempt <= AI_MAX_RETRIES; attempt += 1) {
+    try {
+      return await geminiClient.post(
+        `/models/${model}:generateContent`,
+        {
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: buildPrompt(payload) }]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.4,
+            maxOutputTokens: 400
+          }
+        },
+        {
+          params: {
+            key: GEMINI_API_KEY
+          }
         }
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${HUGGING_FACE_API_KEY}`,
-          "Content-Type": "application/json"
-        }
-      }
-    );
-
-    const data = response.data;
-    const rawText = Array.isArray(data)
-      ? data[0]?.generated_text || ""
-      : data.generated_text || "";
-
-    if (!rawText.trim()) {
-      throw new AppError("AI API returned an empty response", 502);
-    }
-
-    return formatAIResponse(rawText);
-  } catch (error) {
-    if (error instanceof AppError) {
-      throw error;
-    }
-
-    const providerMessage = extractProviderErrorMessage(error);
-
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      throw new AppError(
-        providerMessage || "Hugging Face API key is invalid or unauthorized",
-        error.response.status
       );
-    }
+    } catch (error) {
+      lastError = error;
+      if (!shouldRetryGemini(error) || attempt === AI_MAX_RETRIES) {
+        break;
+      }
 
-    if (error.response?.status === 503) {
-      throw new AppError("AI model is loading. Try again in a moment.", 503);
+      const retryAfterHeader = error?.response?.headers?.["retry-after"];
+      const delayMs = getRetryDelayMs(attempt, retryAfterHeader);
+      await sleep(delayMs);
     }
-
-    throw new AppError(providerMessage || "Hugging Face AI API failure", 502);
   }
+
+  throw lastError;
 }
 
 module.exports = {

@@ -16,6 +16,18 @@
   --ring: rgba(11, 110, 79, 0.25);
 }
 
+html.dark {
+  --bg-0: #0b1014;
+  --bg-1: #0f172a;
+  --ink: #f8fafc;
+  --ink-soft: #cbd5e1;
+  --card: #111827;
+  --accent: #34d399;
+  --accent-2: #f59e0b;
+  --danger: #f87171;
+  --ring: rgba(52, 211, 153, 0.35);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -28,6 +40,13 @@ body {
   background:
     radial-gradient(circle at 20% 10%, rgba(239, 143, 0, 0.16), transparent 28%),
     radial-gradient(circle at 85% 20%, rgba(11, 110, 79, 0.18), transparent 34%),
+    linear-gradient(135deg, var(--bg-0), var(--bg-1));
+}
+
+html.dark body {
+  background:
+    radial-gradient(circle at 20% 10%, rgba(245, 158, 11, 0.18), transparent 28%),
+    radial-gradient(circle at 85% 20%, rgba(52, 211, 153, 0.16), transparent 34%),
     linear-gradient(135deg, var(--bg-0), var(--bg-1));
 }
 
@@ -48,6 +67,111 @@ h4 {
   border-radius: 1rem;
 }
 
+.genz-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.genz-hero::before,
+.genz-hero::after {
+  content: "";
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 999px;
+  filter: blur(2px);
+  opacity: 0.65;
+  z-index: 0;
+}
+
+.genz-hero::before {
+  top: -120px;
+  left: -140px;
+  background: radial-gradient(circle at 30% 30%, rgba(239, 143, 0, 0.5), transparent 60%);
+  animation: floatPulse 10s ease-in-out infinite;
+}
+
+.genz-hero::after {
+  bottom: -160px;
+  right: -120px;
+  background: radial-gradient(circle at 30% 30%, rgba(11, 110, 79, 0.45), transparent 60%);
+  animation: floatPulse 12s ease-in-out infinite;
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(11, 110, 79, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(11, 110, 79, 0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 0.65), transparent 70%);
+  opacity: 0.35;
+  animation: gridDrift 18s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.orbit-ring {
+  position: absolute;
+  inset: 16px;
+  border-radius: 999px;
+  border: 1px dashed rgba(11, 110, 79, 0.3);
+  animation: slowSpin 18s linear infinite;
+}
+
+.floating-pill {
+  animation: floatPulse 8s ease-in-out infinite;
+}
+
+.soft-bounce {
+  animation: softBounce 3s ease-in-out infinite;
+}
+
+.stagger-item {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeUp 0.7s ease forwards;
+}
+
+.stagger-item:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.stagger-item:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.stagger-item:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.stagger-item:nth-child(4) {
+  animation-delay: 0.28s;
+}
+
+.sticker {
+  background: linear-gradient(135deg, rgba(11, 110, 79, 0.16), rgba(239, 143, 0, 0.2));
+  border: 1px solid rgba(11, 110, 79, 0.25);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.1);
+}
+
+.glow-button {
+  background: linear-gradient(120deg, #0b6e4f, #10b981, #f59e0b);
+  background-size: 200% 200%;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  animation: shimmer 6s ease infinite;
+}
+
+.glow-button:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 18px 30px rgba(11, 110, 79, 0.28);
+}
+
+.glass-card-dark {
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
 .fade-up {
   animation: fadeUp 0.55s ease both;
 }
@@ -60,5 +184,56 @@ h4 {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes floatPulse {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(16px);
+  }
+}
+
+@keyframes slowSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes gridDrift {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(12px);
+  }
+}
+
+@keyframes softBounce {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
   }
 }

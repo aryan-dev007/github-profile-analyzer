@@ -3,8 +3,13 @@ import { Link, useParams } from "react-router-dom";
 import AIInsightsCard from "../components/AIInsightsCard";
 import ChartsPanel from "../components/ChartsPanel";
 import ExportButton from "../components/ExportButton";
+import GrowthChart from "../components/GrowthChart";
+import ProfileCard from "../components/ProfileCard";
+import ProjectHighlights from "../components/ProjectHighlights";
 import ScoreCard from "../components/ScoreCard";
+import SmartTags from "../components/SmartTags";
 import StatCard from "../components/StatCard";
+import ThemeToggle from "../components/ThemeToggle";
 import {
   fetchAIInsights,
   fetchDeveloperScore,
@@ -15,56 +20,25 @@ import { formatDateTime } from "../utils/date";
 export default function DashboardPage() {
   const { username } = useParams();
   const reportRef = useRef(null);
+  const aiRequestTimeoutRef = useRef(null);
+  const lastAiPayloadRef = useRef("");
 
   const [stats, setStats] = useState(null);
   const [scoreData, setScoreData] = useState(null);
   const [insightsText, setInsightsText] = useState("");
+  const [aiError, setAiError] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const aiFallbackText = [
-    "Strengths:",
-    "1. Consistent public repository activity.",
-    "2. Good visibility through stars and forks.",
-    "3. Healthy language diversity across projects.",
-    "",
-    "Weaknesses:",
-    "1. AI insights service is currently unavailable.",
-    "2. Deeper project-level context is temporarily missing.",
-    "3. Automated qualitative analysis could not be generated.",
-    "",
-    "Improvements:",
-    "1. Try again in a few minutes to regenerate AI insights.",
-    "2. Verify Hugging Face API key and model availability.",
-    "3. Continue using stats and score while AI service recovers."
-  ].join("\n");
-
-  function buildAIErrorFallback(message) {
-    return [
-      "Strengths:",
-      "1. Core GitHub metrics and score are loaded successfully.",
-      "2. Dashboard data remains available while AI retries.",
-      "3. You can still export and review quantitative stats.",
-      "",
-      "Weaknesses:",
-      `1. ${message || "AI insights request failed."}`,
-      "2. Qualitative analysis could not be generated right now.",
-      "3. AI provider may be rate-limited or temporarily unavailable.",
-      "",
-      "Improvements:",
-      "1. Recheck Gemini API key and GEMINI_MODEL value in backend .env.",
-      "2. Keep Hugging Face key configured for fallback behavior.",
-      "3. Retry the dashboard after restarting backend server."
-    ].join("\n");
-  }
-
   useEffect(() => {
     if (!username) return;
+    let isActive = true;
 
     async function load() {
       try {
         setLoading(true);
         setError("");
+        setAiError("");
 
         // 🔹 Fetch GitHub + Score together
         const [statsRes, scoreRes] = await Promise.all([
@@ -79,19 +53,44 @@ export default function DashboardPage() {
 
         // 🔹 Fetch AI Insights (after stats ready)
         try {
-          const insightsRes = await fetchAIInsights({
+          const payload = {
             repos: statsRes.totalRepos || 0,
             stars: statsRes.totalStars || 0,
             languages: Object.keys(statsRes.languages || {}),
+          };
+          const payloadKey = JSON.stringify({
+            ...payload,
+            languages: [...payload.languages].sort()
           });
 
+          if (payloadKey === lastAiPayloadRef.current) {
+            return;
+          }
+          lastAiPayloadRef.current = payloadKey;
+
+          if (aiRequestTimeoutRef.current) {
+            clearTimeout(aiRequestTimeoutRef.current);
+          }
+
+          await new Promise((resolve) => {
+            aiRequestTimeoutRef.current = setTimeout(resolve, 400);
+          });
+
+          if (!isActive) return;
+
+          const insightsRes = await fetchAIInsights(payload);
+
+          if (!isActive) return;
           setInsightsText(insightsRes?.insights || insightsRes || "");
         } catch (aiError) {
           const aiMessage =
             aiError?.response?.data?.error?.message ||
             aiError?.message ||
             "AI insights service is currently unavailable.";
-          setInsightsText(buildAIErrorFallback(aiMessage));
+          if (isActive) {
+            setInsightsText("");
+            setAiError(aiMessage);
+          }
         }
       } catch (apiError) {
         const message =
@@ -100,11 +99,19 @@ export default function DashboardPage() {
           "Failed to load dashboard data.";
         setError(message);
       } finally {
-        setLoading(false);
+        if (isActive) {
+          setLoading(false);
+        }
       }
     }
 
     load();
+    return () => {
+      isActive = false;
+      if (aiRequestTimeoutRef.current) {
+        clearTimeout(aiRequestTimeoutRef.current);
+      }
+    };
   }, [username]);
 
   const topRepos = useMemo(() => stats?.topRepos || [], [stats]);
@@ -144,17 +151,28 @@ export default function DashboardPage() {
           <Link to="/" className="text-sm text-emerald-800 underline">
             Back
           </Link>
-          <h1 className="mt-2 text-3xl font-bold">
+          <h1 className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
             Dashboard: {stats?.username || "User"}
           </h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">
+            Snapshot of activity, impact, and growth.
+          </p>
         </div>
-        <ExportButton
-          targetRef={reportRef}
-          filename={`${stats?.username || "github"}-report.pdf`}
-        />
+        <div className="flex flex-wrap items-center gap-3">
+          <ThemeToggle />
+          <ExportButton
+            targetRef={reportRef}
+            filename={`${stats?.username || "github"}-report.pdf`}
+          />
+        </div>
       </header>
 
-      <section ref={reportRef} className="space-y-6">
+      <section ref={reportRef} className="space-y-8">
+        <div className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
+          <ProfileCard user={stats} />
+          <ScoreCard scoreData={scoreData} />
+        </div>
+
         {/* Stats */}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <StatCard label="Total Repos" value={stats?.totalRepos ?? 0} delay={0} />
@@ -173,6 +191,15 @@ export default function DashboardPage() {
                 : "N/A"
             }
             delay={240}
+          />
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <ProjectHighlights repos={stats?.reposSummary || []} />
+          <SmartTags
+            repos={stats?.reposSummary || []}
+            lastActive={stats?.lastActive}
+            totalRepos={stats?.totalRepos}
           />
         </div>
 
@@ -204,17 +231,19 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Score */}
-        <ScoreCard scoreData={scoreData} />
-
-        {/* AI Insights */}
-        <AIInsightsCard insightsText={insightsText} />
+        <AIInsightsCard insightsText={insightsText} errorMessage={aiError} />
 
         {/* Charts */}
         <ChartsPanel
           languages={stats?.languages || {}}
           activity={stats?.activityByMonth || []}
         />
+
+        <GrowthChart
+          repoGrowth={stats?.repoGrowth || []}
+          activity={stats?.activityByMonth || []}
+        />
+
       </section>
     </main>
   );

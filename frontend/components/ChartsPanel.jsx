@@ -18,8 +18,11 @@ export default function ChartsPanel({ languages = {}, activity = [] }) {
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <div className="glass-card p-6 fade-up">
-        <h2 className="mb-4 text-xl font-semibold">Language Pie Chart</h2>
+      <div className="glass-card border border-emerald-500/10 bg-white/80 p-6 fade-up dark:border-emerald-500/20 dark:bg-slate-900/80">
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Language Mix</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-300">Top languages by repo count.</p>
+        </div>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -42,8 +45,11 @@ export default function ChartsPanel({ languages = {}, activity = [] }) {
         </div>
       </div>
 
-      <div className="glass-card p-6 fade-up">
-        <h2 className="mb-4 text-xl font-semibold">Repo Activity Chart</h2>
+      <div className="glass-card border border-emerald-500/10 bg-white/80 p-6 fade-up dark:border-emerald-500/20 dark:bg-slate-900/80">
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Activity Pulse</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-300">Monthly repository updates.</p>
+        </div>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={activity}>
