@@ -176,6 +176,56 @@ h4 {
   animation: fadeUp 0.55s ease both;
 }
 
+.pdf-export-mode {
+  background: white !important;
+  color: #111 !important;
+  opacity: 1 !important;
+}
+
+.pdf-export-mode * {
+  color: #111 !important;
+  opacity: 1 !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+
+.pdf-export-mode .glass-card,
+.pdf-export-mode .glass-card-dark {
+  background: white !important;
+  color: #111 !important;
+  border: 1px solid #ddd !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.pdf-export-mode .glow-button,
+.pdf-export-mode button {
+  background: #111 !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.pdf-export-mode .bg-white\/70,
+.pdf-export-mode .bg-white\/80,
+.pdf-export-mode .bg-white\/90 {
+  background-color: #fff !important;
+}
+
+.pdf-export-mode .bg-slate-900\/70,
+.pdf-export-mode .bg-slate-900\/80,
+.pdf-export-mode .bg-slate-900\/90 {
+  background-color: #111 !important;
+}
+
+.pdf-export-mode .backdrop-blur,
+.pdf-export-mode .backdrop-blur-sm,
+.pdf-export-mode .backdrop-blur-md,
+.pdf-export-mode .backdrop-blur-lg {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 @keyframes fadeUp {
   from {
     opacity: 0;

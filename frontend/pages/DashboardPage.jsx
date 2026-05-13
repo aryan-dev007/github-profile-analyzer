@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import AIInsightsCard from "../components/AIInsightsCard";
 import ChartsPanel from "../components/ChartsPanel";
 import ExportButton from "../components/ExportButton";
@@ -19,6 +19,7 @@ import { formatDateTime } from "../utils/date";
 
 export default function DashboardPage() {
   const { username } = useParams();
+  const navigate = useNavigate();
   const reportRef = useRef(null);
   const aiRequestTimeoutRef = useRef(null);
   const lastAiPayloadRef = useRef("");
@@ -27,8 +28,14 @@ export default function DashboardPage() {
   const [scoreData, setScoreData] = useState(null);
   const [insightsText, setInsightsText] = useState("");
   const [aiError, setAiError] = useState("");
+  const [aiHeuristic, setAiHeuristic] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [compareInput, setCompareInput] = useState("");
+  const [compareError, setCompareError] = useState("");
+
+  const GITHUB_USERNAME_REGEX = /^(?!-)(?!.*--)[a-zA-Z0-9-]{1,39}(?<!-)$/;
 
   useEffect(() => {
     if (!username) return;
@@ -73,7 +80,7 @@ export default function DashboardPage() {
           }
 
           await new Promise((resolve) => {
-            aiRequestTimeoutRef.current = setTimeout(resolve, 400);
+            aiRequestTimeoutRef.current = setTimeout(resolve, 1500);
           });
 
           if (!isActive) return;
@@ -81,11 +88,15 @@ export default function DashboardPage() {
           const insightsRes = await fetchAIInsights(payload);
 
           if (!isActive) return;
-          setInsightsText(insightsRes?.insights || insightsRes || "");
+          // support both shapes (string or { insights, heuristic })
+          const text = insightsRes?.insights ?? insightsRes ?? "";
+          setInsightsText(text);
+          setAiHeuristic(Boolean(insightsRes?.heuristic));
         } catch (aiError) {
+          const tried = aiError?.message || aiError?.tried || aiError?.cause?.message;
           const aiMessage =
             aiError?.response?.data?.error?.message ||
-            aiError?.message ||
+            (typeof tried === "string" ? tried : aiError?.message) ||
             "AI insights service is currently unavailable.";
           if (isActive) {
             setInsightsText("");
@@ -160,12 +171,110 @@ export default function DashboardPage() {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <ThemeToggle />
+          <button
+            type="button"
+            onClick={() => {
+              setCompareOpen(true);
+              setCompareInput("");
+              setCompareError("");
+            }}
+            className="rounded-2xl border border-emerald-200 bg-white/80 px-4 py-2 text-sm font-semibold text-emerald-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-emerald-500/30 dark:bg-slate-900/70 dark:text-emerald-200"
+          >
+            Compare Profile
+          </button>
           <ExportButton
             targetRef={reportRef}
             filename={`${stats?.username || "github"}-report.pdf`}
           />
         </div>
       </header>
+
+      {compareOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="glass-card w-full max-w-lg border border-emerald-500/20 bg-white/90 p-6 dark:bg-slate-900/90">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+                  Compare {stats?.username || username}
+                </h2>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">
+                  Enter another GitHub username to run a side-by-side comparison.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCompareOpen(false)}
+                className="text-sm text-slate-500 hover:text-slate-700 dark:text-slate-300"
+              >
+                Close
+              </button>
+            </div>
+
+            <form
+              className="mt-4 grid gap-3"
+              onSubmit={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const currentUser = (stats?.username || username || "").trim();
+                const otherUser = compareInput.trim();
+
+                if (!otherUser) {
+                  setCompareError("Please enter another GitHub username.");
+                  return;
+                }
+
+                if (!GITHUB_USERNAME_REGEX.test(otherUser)) {
+                  setCompareError("Enter a valid GitHub username.");
+                  return;
+                }
+
+                if (currentUser.toLowerCase() === otherUser.toLowerCase()) {
+                  setCompareError("Please enter a different GitHub username.");
+                  return;
+                }
+
+                setCompareError("");
+                setCompareOpen(false);
+                navigate(
+                  `/compare?a=${encodeURIComponent(currentUser)}&b=${encodeURIComponent(
+                    otherUser
+                  )}`
+                );
+              }}
+              noValidate
+            >
+              <input
+                type="text"
+                value={compareInput}
+                onChange={(event) => setCompareInput(event.target.value)}
+                placeholder="e.g. gaearon"
+                autoComplete="off"
+                spellCheck={false}
+                className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-base text-slate-900 outline-none ring-emerald-300 transition focus:ring dark:border-slate-700 dark:bg-slate-900/80 dark:text-white"
+              />
+
+              {compareError && <p className="text-sm text-red-600">{compareError}</p>}
+
+              <div className="flex flex-wrap justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCompareOpen(false)}
+                  className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-600 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="glow-button rounded-2xl px-5 py-2 text-sm font-semibold text-white"
+                >
+                  Compare Now
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <section ref={reportRef} className="space-y-8">
         <div className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
@@ -231,7 +340,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <AIInsightsCard insightsText={insightsText} errorMessage={aiError} />
+        <AIInsightsCard insightsText={insightsText} errorMessage={aiError} isHeuristic={aiHeuristic} />
 
         {/* Charts */}
         <ChartsPanel

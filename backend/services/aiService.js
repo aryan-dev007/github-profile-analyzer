@@ -1,14 +1,14 @@
-const axios = require("axios");
+const OpenAI = require("openai");
 const {
-  GEMINI_API_KEY,
-  GEMINI_MODEL
+  GROQ_API_KEY,
+  GROQ_MODEL
 } = require("../config/env");
 const AppError = require("../utils/appError");
 const { formatAIResponse } = require("../utils/formatAIResponse");
 
-const geminiClient = axios.create({
-  baseURL: "https://generativelanguage.googleapis.com/v1beta",
-  timeout: 30000
+const groqClient = new OpenAI({
+  apiKey: GROQ_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1"
 });
 
 const AI_INSIGHTS_CACHE_TTL_MS = 10 * 60 * 1000;
@@ -18,13 +18,17 @@ const AI_RETRY_MAX_DELAY_MS = 8000;
 const aiInsightsCache = new Map();
 const aiInsightsInflight = new Map();
 
-const GEMINI_DEFAULT_MODEL_CANDIDATES = [
-  "gemini-2.0-flash",
-  "gemini-1.5-flash-latest"
+const GROQ_DEFAULT_MODEL_CANDIDATES = [
+  "llama3-70b-8192",
+  "llama3-8b-8192"
 ];
 
 function extractProviderErrorMessage(error) {
   const data = error?.response?.data;
+
+  if (typeof error?.error?.message === "string") {
+    return error.error.message;
+  }
 
   if (typeof data?.error?.message === "string") {
     return data.error.message;
@@ -36,6 +40,10 @@ function extractProviderErrorMessage(error) {
 
   if (typeof data?.message === "string") {
     return data.message;
+  }
+
+  if (typeof error?.message === "string") {
+    return error.message;
   }
 
   if (Array.isArray(data?.error?.details) && data.error.details.length > 0) {
@@ -121,18 +129,15 @@ function getRetryDelayMs(attempt, retryAfterHeader) {
   return Math.min(delay, AI_RETRY_MAX_DELAY_MS);
 }
 
-function shouldRetryGemini(error) {
-  if (!error?.response) return true;
-
-  const status = error.response?.status;
+function shouldRetryGroq(error) {
+  const status = error?.status || error?.response?.status;
+  if (!status) return true;
   return status === 408 || status === 429 || (status >= 500 && status < 600);
 }
+
 async function generateAIInsights(payload) {
-  if (!GEMINI_API_KEY) {
-    throw new AppError(
-      "No AI provider configured. Set GEMINI_API_KEY to enable live Gemini insights.",
-      500
-    );
+  if (!GROQ_API_KEY) {
+    throw new AppError("GROQ_API_KEY is required to generate AI insights", 400);
   }
 
   const cacheKey = buildPayloadKey(payload);
@@ -143,7 +148,7 @@ async function generateAIInsights(payload) {
     return aiInsightsInflight.get(cacheKey);
   }
 
-  const inflight = generateWithGemini(payload)
+  const inflight = generateWithGroq(payload)
     .then((insights) => {
       setCachedInsights(cacheKey, insights);
       return insights;
@@ -156,27 +161,22 @@ async function generateAIInsights(payload) {
   return inflight;
 }
 
-function buildGeminiModelCandidates() {
-  const candidates = [GEMINI_MODEL, ...GEMINI_DEFAULT_MODEL_CANDIDATES]
+function buildGroqModelCandidates() {
+  const candidates = [GROQ_MODEL, ...GROQ_DEFAULT_MODEL_CANDIDATES]
     .map((model) => (typeof model === "string" ? model.trim() : ""))
     .filter(Boolean);
 
   return [...new Set(candidates)];
 }
 
-async function generateWithGemini(payload) {
-  const modelsToTry = buildGeminiModelCandidates();
+async function generateWithGroq(payload) {
+  const modelsToTry = buildGroqModelCandidates();
   let lastError = null;
 
   for (const model of modelsToTry) {
     try {
-      const response = await callGeminiWithRetry(model, payload);
-
-      const data = response.data;
-      const rawText =
-        data?.candidates?.[0]?.content?.parts
-          ?.map((part) => part?.text || "")
-          .join("\n") || "";
+      const response = await callGroqWithRetry(model, payload);
+      const rawText = response?.choices?.[0]?.message?.content || "";
 
       if (!rawText.trim()) {
         throw new AppError("AI API returned an empty response", 502);
@@ -189,11 +189,11 @@ async function generateWithGemini(payload) {
       }
 
       const providerMessage = extractProviderErrorMessage(error);
-      const status = error.response?.status;
+      const status = error?.status || error.response?.status;
 
       if (status === 404) {
         lastError = new AppError(
-          providerMessage || `Gemini model not found: ${model}`,
+          providerMessage || `Groq model not found: ${model}`,
           404
         );
         continue;
@@ -201,7 +201,7 @@ async function generateWithGemini(payload) {
 
       if (status === 401 || status === 403) {
         throw new AppError(
-          providerMessage || "Gemini API key is invalid or unauthorized",
+          providerMessage || "Groq API key is invalid or unauthorized",
           status
         );
       }
@@ -212,52 +212,37 @@ async function generateWithGemini(payload) {
 
       if (status === 400) {
         throw new AppError(
-          providerMessage || "Invalid AI request payload or Gemini model configuration",
+          providerMessage || "Invalid AI request payload or Groq model configuration",
           400
         );
       }
 
-      throw new AppError(providerMessage || "Gemini AI API failure", 502);
+      throw new AppError(providerMessage || "Groq AI API failure", 502);
     }
   }
 
-  throw lastError || new AppError("Gemini model configuration is invalid", 400);
+  throw lastError || new AppError("Groq model configuration is invalid", 400);
 }
 
-async function callGeminiWithRetry(model, payload) {
+async function callGroqWithRetry(model, payload) {
   let lastError = null;
 
   for (let attempt = 0; attempt <= AI_MAX_RETRIES; attempt += 1) {
     try {
-      return await geminiClient.post(
-        `/models/${model}:generateContent`,
-        {
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: buildPrompt(payload) }]
-            }
-          ],
-          generationConfig: {
-            temperature: 0.4,
-            maxOutputTokens: 400
-          }
-        },
-        {
-          params: {
-            key: GEMINI_API_KEY
-          }
-        }
-      );
+      return await groqClient.chat.completions.create({
+        model,
+        messages: [{ role: "user", content: buildPrompt(payload) }],
+        temperature: 0.4,
+        max_tokens: 400
+      });
     } catch (error) {
       lastError = error;
-      if (!shouldRetryGemini(error) || attempt === AI_MAX_RETRIES) {
-        break;
-      }
 
-      const retryAfterHeader = error?.response?.headers?.["retry-after"];
-      const delayMs = getRetryDelayMs(attempt, retryAfterHeader);
-      await sleep(delayMs);
+      if (attempt < AI_MAX_RETRIES && shouldRetryGroq(error)) {
+        const retryAfter = error?.response?.headers?.["retry-after"];
+        await sleep(getRetryDelayMs(attempt, retryAfter));
+        continue;
+      }
     }
   }
 

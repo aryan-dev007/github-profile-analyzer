@@ -11,10 +11,13 @@ exports.getAIInsights = asyncHandler(async (req, res) => {
 
   const insights = await generateAIInsights({ repos, stars, languages });
 
+  const heuristic = false;
+
   res.status(200).json({
     success: true,
     data: {
-      insights
+      insights,
+      heuristic
     }
   });
 });

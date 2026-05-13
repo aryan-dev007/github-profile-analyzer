@@ -45,6 +45,8 @@ export default function ProfileCard({ user }) {
           <img
             src={avatarSrc}
             alt={displayName}
+            crossOrigin="anonymous"
+            referrerPolicy="no-referrer"
             className="h-20 w-20 rounded-full object-cover ring-2 ring-white/80 dark:ring-emerald-500/30"
           />
         ) : (

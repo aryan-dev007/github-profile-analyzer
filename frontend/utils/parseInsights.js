@@ -1,33 +1,53 @@
-function extractSection(lines, title) {
-  const heading = `${title.toLowerCase()}:`;
-  const start = lines.findIndex((line) => line.toLowerCase() === heading);
-  if (start === -1) return [];
+function normalizeLine(line) {
+  return String(line || "").trim();
+}
 
-  const out = [];
-  for (let i = start + 1; i < lines.length; i += 1) {
-    const line = lines[i];
-    if (!line) continue;
-    const lower = line.toLowerCase();
-    if (lower === "strengths:" || lower === "weaknesses:" || lower === "improvements:") {
-      break;
-    }
+function stripItemPrefix(line) {
+  return line
+    .replace(/^[-*•]\s+/, "")
+    .replace(/^\d+[\.)]\s+/, "")
+    .trim();
+}
 
-    out.push(line.replace(/^\d+\.\s*/, ""));
-    if (out.length === 3) break;
-  }
-
-  return out;
+function detectHeading(line) {
+  const match = /^(strengths|weaknesses|improvements)\s*:?(.*)$/i.exec(line);
+  if (!match) return null;
+  const key = match[1].toLowerCase();
+  const remainder = normalizeLine(match[2]);
+  return { key, remainder };
 }
 
 export function parseInsights(rawText) {
   const lines = (rawText || "")
-    .split("\n")
-    .map((line) => line.trim())
+    .split(/\r?\n/)
+    .map(normalizeLine)
     .filter(Boolean);
 
-  return {
-    strengths: extractSection(lines, "Strengths"),
-    weaknesses: extractSection(lines, "Weaknesses"),
-    improvements: extractSection(lines, "Improvements")
+  const sections = {
+    strengths: [],
+    weaknesses: [],
+    improvements: []
   };
+
+  let current = null;
+
+  for (const line of lines) {
+    const heading = detectHeading(line);
+    if (heading) {
+      current = heading.key;
+      if (heading.remainder) {
+        const cleaned = stripItemPrefix(heading.remainder);
+        if (cleaned) sections[current].push(cleaned);
+      }
+      continue;
+    }
+
+    if (!current) continue;
+    if (sections[current].length >= 3) continue;
+
+    const cleaned = stripItemPrefix(line);
+    if (cleaned) sections[current].push(cleaned);
+  }
+
+  return sections;
 }
