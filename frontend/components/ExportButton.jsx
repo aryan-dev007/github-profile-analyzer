@@ -93,7 +93,7 @@ export default function ExportButton({ targetRef, filename }) {
       type="button"
       onClick={handleExport}
       disabled={isExporting}
-      className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+      className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-semibold text-cyan-100 transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
     >
       {isExporting ? "Exporting..." : "Export Report"}
     </button>

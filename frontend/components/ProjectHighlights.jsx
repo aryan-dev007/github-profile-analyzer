@@ -57,31 +57,31 @@ function Card({ title, icon, repo, meta, descriptionFallback }) {
       href={repo.url}
       target="_blank"
       rel="noreferrer"
-      className="group card-hover relative overflow-hidden rounded-2xl border border-emerald-500/15 bg-white/80 p-5 text-slate-900 shadow-sm dark:border-emerald-500/25 dark:bg-slate-900/80 dark:text-slate-100"
+      className="group card-hover relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-5 text-slate-100 shadow-sm"
     >
       <div className="pointer-events-none absolute inset-0 opacity-0 transition group-hover:opacity-100">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-emerald-500/20" />
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/15 via-transparent to-pink-400/20" />
       </div>
 
       <div className="relative flex items-start justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-300">
+          <p className="text-xs font-semibold uppercase tracking-widest text-cyan-200">
             {icon} {title}
           </p>
-          <h3 className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">
+          <h3 className="mt-2 text-lg font-semibold text-white">
             {repo.name}
           </h3>
         </div>
-        <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-200">
+        <span className="rounded-full bg-cyan-400/10 px-2 py-1 text-xs font-medium text-cyan-100">
           {language}
         </span>
       </div>
 
-      <p className="relative mt-3 text-sm text-slate-600 dark:text-slate-300">
+      <p className="relative mt-3 text-sm text-slate-300">
         {description}
       </p>
 
-      <div className="relative mt-4 text-xs font-medium text-emerald-700 dark:text-emerald-200">
+      <div className="relative mt-4 text-xs font-medium text-cyan-200">
         {meta}
       </div>
     </a>
@@ -91,7 +91,7 @@ function Card({ title, icon, repo, meta, descriptionFallback }) {
 export default function ProjectHighlights({ repos = [] }) {
   if (!Array.isArray(repos) || repos.length === 0) {
     return (
-      <div className="glass-card p-6 text-sm text-slate-500">
+      <div className="glass-card glass-strong p-6 text-sm text-slate-300">
         No repositories available for highlights.
       </div>
     );
@@ -104,8 +104,8 @@ export default function ProjectHighlights({ repos = [] }) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Project Highlights</h2>
-        <div className="text-xs text-slate-500 dark:text-slate-300">
+        <h2 className="text-xl font-semibold text-white">Project Highlights</h2>
+        <div className="text-xs text-slate-300">
           Top picks by stars, recency, and size.
         </div>
       </div>

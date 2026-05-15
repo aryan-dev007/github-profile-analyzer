@@ -5,13 +5,13 @@ function WinnerBadge({ label }) {
   if (!label) return null;
 
   return (
-    <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200">
+    <span className="inline-flex items-center gap-2 rounded-full bg-cyan-400/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-100">
       <svg
         viewBox="0 0 24 24"
         width="14"
         height="14"
         aria-hidden="true"
-        className="text-emerald-600"
+        className="text-cyan-200"
       >
         <path
           fill="currentColor"
@@ -35,21 +35,21 @@ export default function CompareHeader({ userA, userB, overallWinner }) {
           <Link to="/" className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
             Back
           </Link>
-          <h1 className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
+          <h1 className="mt-2 text-3xl font-bold text-white">
             Compare Profiles
           </h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">
+          <p className="mt-1 text-sm text-slate-300">
             Side-by-side analytics across impact, activity, and presence.
           </p>
         </div>
         <ThemeToggle />
       </div>
 
-      <div className="glass-card card-hover border border-emerald-500/15 bg-white/80 p-4 dark:border-emerald-500/25 dark:bg-slate-900/80">
+      <div className="glass-card glass-strong neon-border card-hover p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="text-sm text-slate-600 dark:text-slate-300">
-            Comparing <span className="font-semibold text-slate-900 dark:text-white">{nameA}</span> vs
-            <span className="font-semibold text-slate-900 dark:text-white"> {nameB}</span>
+          <div className="text-sm text-slate-300">
+            Comparing <span className="font-semibold text-white">{nameA}</span> vs
+            <span className="font-semibold text-white"> {nameB}</span>
           </div>
           <WinnerBadge label={winnerLabel} />
         </div>

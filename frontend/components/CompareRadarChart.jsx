@@ -21,6 +21,22 @@ function normalizeMetric(value, max) {
 export default function CompareRadarChart({ statsA, statsB, scoreA, scoreB, userA, userB }) {
   const userAName = userA || "User 1";
   const userBName = userB || "User 2";
+  const tooltipContentStyle = {
+    background: "rgba(8, 12, 20, 0.9)",
+    border: "1px solid rgba(48, 242, 255, 0.45)",
+    borderRadius: "14px",
+    color: "#e2e8f0",
+    boxShadow: "0 18px 40px rgba(3, 7, 18, 0.6)",
+    backdropFilter: "blur(12px)"
+  };
+  const tooltipLabelStyle = {
+    color: "#7dd3fc",
+    fontWeight: 600
+  };
+  const tooltipItemStyle = {
+    color: "#e2e8f0",
+    fontWeight: 500
+  };
 
   const raw = [
     {
@@ -60,37 +76,41 @@ export default function CompareRadarChart({ statsA, statsB, scoreA, scoreB, user
   });
 
   return (
-    <div className="glass-card card-hover border border-emerald-500/15 bg-white/80 p-6 dark:border-emerald-500/25 dark:bg-slate-900/80">
+    <div className="glass-card glass-strong neon-border card-hover p-6">
       <div className="mb-4">
-        <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Radar Comparison</h2>
-        <p className="text-sm text-slate-500 dark:text-slate-300">
+        <h2 className="text-xl font-semibold text-white">Radar Comparison</h2>
+        <p className="text-sm text-slate-300">
           Normalized metrics across activity, popularity, and reach.
         </p>
       </div>
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart data={data} outerRadius="70%">
-            <PolarGrid stroke="rgba(148, 163, 184, 0.4)" />
-            <PolarAngleAxis dataKey="category" tick={{ fill: "#64748b", fontSize: 12 }} />
-            <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 10 }} />
+            <PolarGrid stroke="rgba(148, 163, 184, 0.25)" />
+            <PolarAngleAxis dataKey="category" tick={{ fill: "#cbd5f5", fontSize: 12 }} />
+            <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: "#94a3b8", fontSize: 10 }} />
             <Radar
               name={userAName}
               dataKey={userAName}
-              stroke="#0b6e4f"
-              fill="#0b6e4f"
-              fillOpacity={0.28}
+              stroke="#30f2ff"
+              fill="#30f2ff"
+              fillOpacity={0.2}
               isAnimationActive
             />
             <Radar
               name={userBName}
               dataKey={userBName}
-              stroke="#ef8f00"
-              fill="#ef8f00"
-              fillOpacity={0.2}
+              stroke="#ff5cdf"
+              fill="#ff5cdf"
+              fillOpacity={0.18}
               isAnimationActive
             />
-            <Tooltip />
-            <Legend />
+            <Tooltip
+              contentStyle={tooltipContentStyle}
+              labelStyle={tooltipLabelStyle}
+              itemStyle={tooltipItemStyle}
+            />
+            <Legend wrapperStyle={{ color: "#cbd5f5", fontSize: 12 }} />
           </RadarChart>
         </ResponsiveContainer>
       </div>

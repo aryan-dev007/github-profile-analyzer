@@ -219,62 +219,94 @@ export default function ComparePage() {
     <main className="mx-auto max-w-6xl px-4 py-8">
       <CompareHeader userA={userAName} userB={userBName} overallWinner={overallWinner} />
 
-      <section className="glass-card border border-emerald-500/10 bg-white/80 p-6 dark:border-emerald-500/20 dark:bg-slate-900/80">
+      <section className="glass-card glass-strong neon-border p-6">
         <form className="grid gap-4 lg:grid-cols-[1fr_1fr_auto]" onSubmit={handleSubmit} noValidate>
           <div>
-            <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+            <label className="text-sm font-semibold text-slate-300">
               First GitHub username
             </label>
-            <input
-              type="text"
-              value={userAInput}
-              onChange={(e) => setUserAInput(e.target.value)}
-              placeholder="e.g. torvalds"
-              autoComplete="off"
-              spellCheck={false}
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-base text-slate-900 outline-none ring-emerald-300 transition focus:ring dark:border-slate-700 dark:bg-slate-900/80 dark:text-white"
-            />
+            <div className="input-shell mt-2">
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                aria-hidden="true"
+                className="text-cyan-200"
+              >
+                <path
+                  fill="currentColor"
+                  d="M10.5 3a7.5 7.5 0 015.97 12.04l3.75 3.75-1.42 1.41-3.75-3.74A7.5 7.5 0 1110.5 3zm0 2a5.5 5.5 0 100 11 5.5 5.5 0 000-11z"
+                />
+              </svg>
+              <input
+                type="text"
+                value={userAInput}
+                onChange={(e) => setUserAInput(e.target.value)}
+                placeholder="e.g. torvalds"
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </div>
           </div>
           <div>
-            <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+            <label className="text-sm font-semibold text-slate-300">
               Second GitHub username
             </label>
-            <input
-              type="text"
-              value={userBInput}
-              onChange={(e) => setUserBInput(e.target.value)}
-              placeholder="e.g. gaearon"
-              autoComplete="off"
-              spellCheck={false}
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-base text-slate-900 outline-none ring-emerald-300 transition focus:ring dark:border-slate-700 dark:bg-slate-900/80 dark:text-white"
-            />
+            <div className="input-shell mt-2">
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                aria-hidden="true"
+                className="text-cyan-200"
+              >
+                <path
+                  fill="currentColor"
+                  d="M10.5 3a7.5 7.5 0 015.97 12.04l3.75 3.75-1.42 1.41-3.75-3.74A7.5 7.5 0 1110.5 3zm0 2a5.5 5.5 0 100 11 5.5 5.5 0 000-11z"
+                />
+              </svg>
+              <input
+                type="text"
+                value={userBInput}
+                onChange={(e) => setUserBInput(e.target.value)}
+                placeholder="e.g. gaearon"
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </div>
           </div>
           <div className="flex items-end">
             <button
               type="submit"
-              className="glow-button h-[52px] w-full rounded-2xl px-6 text-base font-semibold text-white lg:w-auto"
+              className="glow-button h-[52px] w-full rounded-2xl px-6 text-base font-semibold text-slate-900 lg:w-auto"
             >
               Compare
             </button>
           </div>
         </form>
 
-        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+        {error && (
+          <p className="mt-3 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-sm text-rose-100">
+            {error}
+          </p>
+        )}
       </section>
 
       {loading && (
         <section className="mt-6">
-          <div className="glass-card p-8 text-center">
-            <div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" />
-            <p className="text-sm text-slate-500">Loading comparison...</p>
+          <div className="glass-card glass-strong p-8 text-center">
+            <div className="mx-auto mb-4 flex justify-center">
+              <div className="spinner-orbit" />
+            </div>
+            <p className="text-sm text-slate-300">Loading comparison...</p>
           </div>
         </section>
       )}
 
       {!loading && !isReady && !error && (
         <section className="mt-6">
-          <div className="glass-card p-8 text-center">
-            <p className="text-sm text-slate-500">
+          <div className="glass-card glass-strong p-8 text-center">
+            <p className="text-sm text-slate-300">
               Enter two GitHub usernames to compare their profile performance.
             </p>
           </div>

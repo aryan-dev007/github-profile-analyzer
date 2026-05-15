@@ -37,13 +37,13 @@ export default function ProfileCard({ user, languages = {} }) {
   const languageList = Object.keys(languages || {}).slice(0, 5);
 
   return (
-    <div className="glass-card card-hover relative overflow-hidden border border-emerald-500/15 bg-white/80 p-6 backdrop-blur dark:border-emerald-500/25 dark:bg-slate-900/80">
-      <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-emerald-400/20 blur-3xl" />
+    <div className="glass-card glass-strong neon-border card-hover relative overflow-hidden p-6">
+      <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-cyan-400/20 blur-3xl" />
       <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center">
         
         {/* Avatar */}
         {avatarSrc ? (
-          <div className="rounded-full bg-gradient-to-br from-emerald-400 via-cyan-300 to-amber-300 p-0.5">
+          <div className="rounded-full bg-gradient-to-br from-cyan-400 via-emerald-300 to-pink-400 p-0.5">
             <img
               src={avatarSrc}
               alt={displayName}
@@ -53,7 +53,7 @@ export default function ProfileCard({ user, languages = {} }) {
             />
           </div>
         ) : (
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-xl font-semibold text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-cyan-400/20 text-xl font-semibold text-cyan-100">
             {getInitials(user)}
           </div>
         )}
@@ -61,20 +61,20 @@ export default function ProfileCard({ user, languages = {} }) {
         {/* Main Info */}
         <div className="flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="pill bg-emerald-500/15 text-emerald-200">Developer Profile</span>
+            <span className="pill bg-cyan-400/20 text-cyan-100">Developer Profile</span>
             {languageList.length > 0 && (
-              <span className="pill bg-amber-500/15 text-amber-200">{languageList[0]}</span>
+              <span className="pill bg-pink-500/20 text-pink-100">{languageList[0]}</span>
             )}
           </div>
 
-          <h2 className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
+          <h2 className="mt-1 text-2xl font-bold text-white">
             {displayName}
           </h2>
 
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{bio}</p>
+          <p className="mt-2 text-sm text-slate-300">{bio}</p>
 
           {/* Extra Info */}
-          <div className="mt-3 flex flex-wrap gap-4 text-sm text-slate-600 dark:text-slate-300">
+          <div className="mt-3 flex flex-wrap gap-4 text-sm text-slate-300">
             {location && <span>📍 {location}</span>}
             {company && <span>🏢 {company}</span>}
           </div>
@@ -86,7 +86,7 @@ export default function ProfileCard({ user, languages = {} }) {
                 href={profileUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-100"
+                className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-100"
               >
                 GitHub Profile
               </a>
@@ -97,26 +97,26 @@ export default function ProfileCard({ user, languages = {} }) {
                 href={blog.startsWith("http") ? blog : `https://${blog}`}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-100"
+                className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-100"
               >
                 Portfolio
               </a>
             )}
           </div>
 
-          <p className="mt-3 text-xs font-medium text-slate-500 dark:text-slate-400">
+          <p className="mt-3 text-xs font-medium text-slate-400">
             Joined {joinDate}
           </p>
         </div>
 
         {/* Followers */}
         <div className="flex gap-4 text-sm">
-          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-center">
-            <p className="text-xs uppercase tracking-wide text-emerald-200">Followers</p>
+          <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-3 text-center">
+            <p className="text-xs uppercase tracking-wide text-cyan-200">Followers</p>
             <p className="mt-1 text-lg font-semibold text-white">{followers}</p>
           </div>
 
-          <div className="rounded-2xl border border-slate-700/50 bg-slate-900/70 px-4 py-3 text-center">
+          <div className="rounded-2xl border border-slate-700/50 bg-white/5 px-4 py-3 text-center">
             <p className="text-xs uppercase tracking-wide text-slate-300">Following</p>
             <p className="mt-1 text-lg font-semibold text-white">{following}</p>
           </div>

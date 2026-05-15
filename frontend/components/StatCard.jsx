@@ -11,17 +11,17 @@ export default function StatCard({ label, value, delay = 0 }) {
 
   return (
     <div
-      className="glass-card card-hover border border-emerald-500/15 bg-white/80 p-4 fade-up dark:border-emerald-500/25 dark:bg-slate-900/80"
+      className="glass-card glass-strong neon-border card-hover p-4 fade-up"
       style={{ animationDelay: `${delay}ms` }}
     >
       <div className="flex items-center justify-between">
         <span className="text-lg">{icon}</span>
-        <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.3em] text-emerald-200">
+        <span className="status-pill bg-cyan-400/15 text-cyan-200">
           Live
         </span>
       </div>
-      <p className="mt-4 text-sm text-slate-500 dark:text-slate-300">{label}</p>
-      <h3 className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{value}</h3>
+      <p className="mt-4 text-sm text-slate-300">{label}</p>
+      <h3 className="mt-2 text-3xl font-bold text-white">{value}</h3>
     </div>
   );
 }

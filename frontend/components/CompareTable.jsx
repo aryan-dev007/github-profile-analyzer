@@ -1,12 +1,12 @@
 function WinnerBadge() {
   return (
-    <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-emerald-100/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200">
+    <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-cyan-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-100">
       <svg
         viewBox="0 0 24 24"
         width="12"
         height="12"
         aria-hidden="true"
-        className="text-emerald-600"
+        className="text-cyan-200"
       >
         <path
           fill="currentColor"
@@ -19,17 +19,17 @@ function WinnerBadge() {
 }
 
 function getCellClass(isWinner) {
-  if (!isWinner) return "text-slate-900 dark:text-white";
+  if (!isWinner) return "text-slate-200";
 
-  return "rounded-xl bg-emerald-50/70 px-3 py-2 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200";
+  return "rounded-xl bg-cyan-400/10 px-3 py-2 text-cyan-100";
 }
 
 export default function CompareTable({ metrics, userA, userB }) {
   return (
-    <div className="glass-card card-hover border border-emerald-500/15 bg-white/80 p-6 dark:border-emerald-500/25 dark:bg-slate-900/80">
+    <div className="glass-card glass-strong neon-border card-hover p-6">
       <div className="mb-4">
-        <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Comparison Table</h2>
-        <p className="text-sm text-slate-500 dark:text-slate-300">
+        <h2 className="text-xl font-semibold text-white">Comparison Table</h2>
+        <p className="text-sm text-slate-300">
           Metric-by-metric performance across both profiles.
         </p>
       </div>
@@ -43,13 +43,13 @@ export default function CompareTable({ metrics, userA, userB }) {
               <th className="pb-3">{userB}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200/60 dark:divide-slate-700/60">
+          <tbody className="divide-y divide-white/10">
             {metrics.map((metric) => {
               const isWinnerA = metric.winner === "A";
               const isWinnerB = metric.winner === "B";
               return (
-                <tr key={metric.key} className="text-slate-700 dark:text-slate-200">
-                  <td className="py-3 pr-4 font-medium text-slate-900 dark:text-white">
+                <tr key={metric.key} className="text-slate-200">
+                  <td className="py-3 pr-4 font-medium text-white">
                     {metric.label}
                   </td>
                   <td className="py-3">

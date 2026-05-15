@@ -40,7 +40,7 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={handleToggle}
-      className="rounded-full border border-slate-700/40 bg-slate-900/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-cyan-100 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
       aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
     >
       {theme === "dark" ? "Light" : "Dark"}
