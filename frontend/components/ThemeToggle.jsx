@@ -12,7 +12,7 @@ function getPreferredTheme() {
     return "dark";
   }
 
-  return "light";
+  return "dark";
 }
 
 function applyTheme(theme) {
@@ -40,7 +40,7 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={handleToggle}
-      className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200"
+      className="rounded-full border border-slate-700/40 bg-slate-900/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
       aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
     >
       {theme === "dark" ? "Light" : "Dark"}

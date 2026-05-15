@@ -32,7 +32,7 @@ export default function CompareHeader({ userA, userB, overallWinner }) {
     <header className="mb-6 flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <Link to="/" className="text-sm text-emerald-800 underline">
+          <Link to="/" className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
             Back
           </Link>
           <h1 className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
@@ -45,7 +45,7 @@ export default function CompareHeader({ userA, userB, overallWinner }) {
         <ThemeToggle />
       </div>
 
-      <div className="glass-card border border-emerald-500/10 bg-white/80 p-4 dark:border-emerald-500/20 dark:bg-slate-900/80">
+      <div className="glass-card card-hover border border-emerald-500/15 bg-white/80 p-4 dark:border-emerald-500/25 dark:bg-slate-900/80">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="text-sm text-slate-600 dark:text-slate-300">
             Comparing <span className="font-semibold text-slate-900 dark:text-white">{nameA}</span> vs

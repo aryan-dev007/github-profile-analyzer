@@ -57,7 +57,7 @@ function Card({ title, icon, repo, meta, descriptionFallback }) {
       href={repo.url}
       target="_blank"
       rel="noreferrer"
-      className="group relative overflow-hidden rounded-2xl border border-emerald-500/15 bg-white/80 p-5 text-slate-900 shadow-sm transition hover:-translate-y-1 hover:shadow-xl dark:border-emerald-500/20 dark:bg-slate-900/80 dark:text-slate-100"
+      className="group card-hover relative overflow-hidden rounded-2xl border border-emerald-500/15 bg-white/80 p-5 text-slate-900 shadow-sm dark:border-emerald-500/25 dark:bg-slate-900/80 dark:text-slate-100"
     >
       <div className="pointer-events-none absolute inset-0 opacity-0 transition group-hover:opacity-100">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-emerald-500/20" />
@@ -65,7 +65,7 @@ function Card({ title, icon, repo, meta, descriptionFallback }) {
 
       <div className="relative flex items-start justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-300">
+          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-300">
             {icon} {title}
           </p>
           <h3 className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">

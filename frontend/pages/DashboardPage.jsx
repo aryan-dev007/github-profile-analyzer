@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import AIInsightsCard from "../components/AIInsightsCard";
 import ChartsPanel from "../components/ChartsPanel";
@@ -127,16 +128,53 @@ export default function DashboardPage() {
 
   const topRepos = useMemo(() => stats?.topRepos || [], [stats]);
 
+  const stagger = {
+    hidden: { opacity: 0, y: 16 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { staggerChildren: 0.08, duration: 0.5 }
+    }
+  };
+
+  const fadeItem = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+  };
+
   // 🔄 Loading UI
   if (loading) {
     return (
-      <main className="mx-auto max-w-6xl px-4 py-10">
-        <div className="glass-card p-10 text-center">
-          <p className="animate-pulse text-lg font-medium">
-            Fetching GitHub data...
-          </p>
+      <div className="relative z-10">
+        <div className="app-header">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-400 via-teal-300 to-amber-300" />
+              <div>
+                <p className="text-xs uppercase tracking-[0.4em] text-slate-400">PulseBoard</p>
+                <p className="glow-title text-lg font-semibold">Developer Analytics</p>
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
+        <main className="mx-auto max-w-6xl px-4 py-10">
+          <div className="grid gap-6">
+            <div className="glass-card card-hover p-6">
+              <div className="h-6 w-1/3 animate-pulse rounded-full bg-slate-200/60 dark:bg-slate-800/70" />
+              <div className="mt-4 h-4 w-2/3 animate-pulse rounded-full bg-slate-200/60 dark:bg-slate-800/70" />
+              <div className="mt-6 h-24 animate-pulse rounded-2xl bg-slate-200/60 dark:bg-slate-800/70" />
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, idx) => (
+                <div
+                  key={`skeleton-${idx}`}
+                  className="glass-card card-hover h-32 animate-pulse bg-white/60 dark:bg-slate-900/60"
+                />
+              ))}
+            </div>
+          </div>
+        </main>
+      </div>
     );
   }
 
@@ -155,39 +193,49 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
-      {/* Header */}
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <Link to="/" className="text-sm text-emerald-800 underline">
-            Back
-          </Link>
-          <h1 className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
+    <div className="relative z-10">
+      <div className="app-header">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4">
+          <div className="flex items-center gap-3">
+            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-emerald-400 via-teal-300 to-amber-300 shadow-lg shadow-emerald-500/30" />
+            <div>
+              <p className="text-xs uppercase tracking-[0.4em] text-slate-400">PulseBoard</p>
+              <p className="glow-title text-lg font-semibold">Developer Analytics</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link to="/" className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+              Back
+            </Link>
+            <ThemeToggle />
+            <button
+              type="button"
+              onClick={() => {
+                setCompareOpen(true);
+                setCompareInput("");
+                setCompareError("");
+              }}
+              className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-100 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            >
+              Compare Profile
+            </button>
+            <ExportButton
+              targetRef={reportRef}
+              filename={`${stats?.username || "github"}-report.pdf`}
+            />
+          </div>
+        </div>
+      </div>
+
+      <main className="mx-auto max-w-6xl px-4 py-8">
+        <header className="mb-8 flex flex-col gap-2">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
             Dashboard: {stats?.username || "User"}
           </h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">
+          <p className="text-sm text-slate-500 dark:text-slate-300">
             Snapshot of activity, impact, and growth.
           </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <ThemeToggle />
-          <button
-            type="button"
-            onClick={() => {
-              setCompareOpen(true);
-              setCompareInput("");
-              setCompareError("");
-            }}
-            className="rounded-2xl border border-emerald-200 bg-white/80 px-4 py-2 text-sm font-semibold text-emerald-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-emerald-500/30 dark:bg-slate-900/70 dark:text-emerald-200"
-          >
-            Compare Profile
-          </button>
-          <ExportButton
-            targetRef={reportRef}
-            filename={`${stats?.username || "github"}-report.pdf`}
-          />
-        </div>
-      </header>
+        </header>
 
       {compareOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
@@ -276,14 +324,24 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <section ref={reportRef} className="space-y-8">
+      <motion.section
+        ref={reportRef}
+        className="space-y-8"
+        variants={stagger}
+        initial="hidden"
+        animate="visible"
+      >
         <div className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
-          <ProfileCard user={stats} />
-          <ScoreCard scoreData={scoreData} />
+          <motion.div variants={fadeItem}>
+            <ProfileCard user={stats} languages={stats?.languages || {}} />
+          </motion.div>
+          <motion.div variants={fadeItem}>
+            <ScoreCard scoreData={scoreData} />
+          </motion.div>
         </div>
 
         {/* Stats */}
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <motion.div variants={fadeItem} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <StatCard label="Total Repos" value={stats?.totalRepos ?? 0} delay={0} />
           <StatCard label="Total Stars" value={stats?.totalStars ?? 0} delay={60} />
           <StatCard label="Total Forks" value={stats?.totalForks ?? 0} delay={120} />
@@ -301,19 +359,19 @@ export default function DashboardPage() {
             }
             delay={240}
           />
-        </div>
+        </motion.div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <motion.div variants={fadeItem} className="grid gap-6 lg:grid-cols-2">
           <ProjectHighlights repos={stats?.reposSummary || []} />
           <SmartTags
             repos={stats?.reposSummary || []}
             lastActive={stats?.lastActive}
             totalRepos={stats?.totalRepos}
           />
-        </div>
+        </motion.div>
 
         {/* Top Repos */}
-        <div className="glass-card p-6 fade-up">
+        <motion.div variants={fadeItem} className="glass-card card-hover p-6">
           <h2 className="text-xl font-semibold">
             Top Repositories (By Stars)
           </h2>
@@ -338,22 +396,29 @@ export default function DashboardPage() {
               ))}
             </ul>
           )}
-        </div>
+        </motion.div>
 
-        <AIInsightsCard insightsText={insightsText} errorMessage={aiError} isHeuristic={aiHeuristic} />
+        <motion.div variants={fadeItem}>
+          <AIInsightsCard insightsText={insightsText} errorMessage={aiError} isHeuristic={aiHeuristic} />
+        </motion.div>
 
         {/* Charts */}
-        <ChartsPanel
-          languages={stats?.languages || {}}
-          activity={stats?.activityByMonth || []}
-        />
+        <motion.div variants={fadeItem}>
+          <ChartsPanel
+            languages={stats?.languages || {}}
+            activity={stats?.activityByMonth || []}
+          />
+        </motion.div>
 
-        <GrowthChart
-          repoGrowth={stats?.repoGrowth || []}
-          activity={stats?.activityByMonth || []}
-        />
+        <motion.div variants={fadeItem}>
+          <GrowthChart
+            repoGrowth={stats?.repoGrowth || []}
+            activity={stats?.activityByMonth || []}
+          />
+        </motion.div>
 
-      </section>
+      </motion.section>
     </main>
+    </div>
   );
 }

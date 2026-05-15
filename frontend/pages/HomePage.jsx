@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ThemeToggle from "../components/ThemeToggle";
 
 const GITHUB_USERNAME_REGEX = /^(?!-)(?!.*--)[a-zA-Z0-9-]{1,39}(?<!-)$/;
@@ -31,8 +31,25 @@ export default function HomePage() {
 
   return (
     <main className="relative min-h-screen">
-      <div className="absolute right-4 top-4 z-20">
-        <ThemeToggle />
+      <div className="app-header">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-400 via-teal-300 to-amber-300 shadow-lg shadow-emerald-500/30" />
+            <div>
+              <p className="text-xs uppercase tracking-[0.4em] text-slate-400">PulseBoard</p>
+              <p className="glow-title text-lg font-semibold">Developer Analytics</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              to="/compare"
+              className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-100"
+            >
+              Compare
+            </Link>
+            <ThemeToggle />
+          </div>
+        </div>
       </div>
 
       <section className="genz-hero mx-auto flex min-h-screen max-w-6xl items-center px-4 py-12">
@@ -46,7 +63,7 @@ export default function HomePage() {
 
             <h1 className="stagger-item text-4xl font-bold leading-tight text-slate-900 md:text-6xl dark:text-white">
               Turn developer footprints into a
-              <span className="text-emerald-600"> story of impact</span>.
+              <span className="glow-title"> story of impact</span>.
             </h1>
 
             <p className="stagger-item max-w-xl text-base text-slate-600 md:text-lg dark:text-slate-300">

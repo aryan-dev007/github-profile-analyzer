@@ -26,7 +26,7 @@ function getCellClass(isWinner) {
 
 export default function CompareTable({ metrics, userA, userB }) {
   return (
-    <div className="glass-card border border-emerald-500/10 bg-white/80 p-6 dark:border-emerald-500/20 dark:bg-slate-900/80">
+    <div className="glass-card card-hover border border-emerald-500/15 bg-white/80 p-6 dark:border-emerald-500/25 dark:bg-slate-900/80">
       <div className="mb-4">
         <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Comparison Table</h2>
         <p className="text-sm text-slate-500 dark:text-slate-300">

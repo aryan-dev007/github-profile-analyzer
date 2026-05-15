@@ -20,7 +20,7 @@ export default function GrowthChart({ repoGrowth = [], activity = [] }) {
   const hasAnyData = hasRepoGrowth || hasActivity;
 
   return (
-    <div className="glass-card p-6 fade-up">
+    <div className="glass-card card-hover p-6 fade-up">
       <div className="flex flex-col gap-1">
         <h2 className="text-xl font-semibold">Growth Tracker</h2>
         <p className="text-sm text-slate-500">
@@ -43,12 +43,19 @@ export default function GrowthChart({ repoGrowth = [], activity = [] }) {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis allowDecimals={false} />
-                    <Tooltip />
+                    <Tooltip
+                      contentStyle={{
+                        background: "#0f172a",
+                        border: "1px solid rgba(148, 163, 184, 0.3)",
+                        borderRadius: "12px",
+                        color: "#e2e8f0"
+                      }}
+                    />
                     <Line
                       type="monotone"
                       dataKey="count"
-                      stroke="#0b6e4f"
-                      strokeWidth={2}
+                      stroke="#34d399"
+                      strokeWidth={2.5}
                       dot={{ r: 3 }}
                     />
                   </LineChart>
@@ -68,8 +75,15 @@ export default function GrowthChart({ repoGrowth = [], activity = [] }) {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis allowDecimals={false} />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#ef8f00" radius={[6, 6, 0, 0]} />
+                    <Tooltip
+                      contentStyle={{
+                        background: "#0f172a",
+                        border: "1px solid rgba(148, 163, 184, 0.3)",
+                        borderRadius: "12px",
+                        color: "#e2e8f0"
+                      }}
+                    />
+                    <Bar dataKey="count" fill="#fb923c" radius={[8, 8, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
