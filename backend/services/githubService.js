@@ -1,5 +1,9 @@
 const axios = require("axios");
-const { GITHUB_TOKEN, GITHUB_COOLDOWN_MS } = require("../config/env");
+const {
+  GITHUB_TOKEN,
+  GITHUB_COOLDOWN_MS,
+  GITHUB_REPO_PAGE_CONCURRENCY
+} = require("../config/env");
 const AppError = require("../utils/appError");
 
 const GITHUB_STATS_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -19,25 +23,71 @@ function createGithubClient(token = "") {
 }
 
 
-async function fetchAllRepos(username, githubClient) {
-  const repos = [];
-  let page = 1;
+function parseLastPage(linkHeader) {
+  if (!linkHeader) return 1;
+  const lastMatch = linkHeader.match(/<([^>]+)>;\s*rel="last"/i);
+  if (!lastMatch) return 1;
 
-  while (true) {
-    const response = await githubClient.get(`/users/${username}/repos`, {
-      params: {
-        per_page: 100,
-        page,
-        sort: "updated"
-      }
-    });
+  try {
+    const url = new URL(lastMatch[1]);
+    const page = Number(url.searchParams.get("page"));
+    return Number.isFinite(page) && page > 0 ? page : 1;
+  } catch (error) {
+    return 1;
+  }
+}
 
-    repos.push(...response.data);
+async function mapWithConcurrency(items, limit, mapper) {
+  if (!items.length) return [];
+  const concurrency = Math.max(1, Math.min(limit, items.length));
+  const results = new Array(items.length);
+  let index = 0;
 
-    if (response.data.length < 100) break;
-    page += 1;
+  async function worker() {
+    while (index < items.length) {
+      const current = index;
+      index += 1;
+      results[current] = await mapper(items[current]);
+    }
   }
 
+  await Promise.all(Array.from({ length: concurrency }, () => worker()));
+  return results;
+}
+
+async function fetchAllRepos(username, githubClient) {
+  const response = await githubClient.get(`/users/${username}/repos`, {
+    params: {
+      per_page: 100,
+      page: 1,
+      sort: "updated"
+    }
+  });
+
+  const repos = [...response.data];
+  const lastPage = parseLastPage(response.headers?.link);
+
+  if (lastPage <= 1 || response.data.length < 100) {
+    return repos;
+  }
+
+  const pages = Array.from({ length: lastPage - 1 }, (_, idx) => idx + 2);
+  const pageResults = await mapWithConcurrency(
+    pages,
+    GITHUB_REPO_PAGE_CONCURRENCY,
+    async (page) => {
+      const pageResponse = await githubClient.get(`/users/${username}/repos`, {
+        params: {
+          per_page: 100,
+          page,
+          sort: "updated"
+        }
+      });
+      return pageResponse.data || [];
+    }
+  );
+
+  pageResults.forEach((pageRepos) => repos.push(...pageRepos));
   return repos;
 }
 
@@ -93,12 +143,11 @@ async function fetchGithubStatsWithClient(username, githubClient) {
   );
   const totalForks = repos.reduce((sum, repo) => sum + (repo.forks_count || 0), 0);
 
-  const lastActive = repos.length
-    ? repos
-        .map((repo) => repo.pushed_at)
-        .filter(Boolean)
-        .sort((a, b) => new Date(b) - new Date(a))[0]
-    : user.updated_at;
+  const lastActive = repos.reduce((latest, repo) => {
+    if (!repo.pushed_at) return latest;
+    if (!latest) return repo.pushed_at;
+    return new Date(repo.pushed_at) > new Date(latest) ? repo.pushed_at : latest;
+  }, "") || user.updated_at;
 
   const topRepos = [...repos]
     .sort((a, b) => (b.stargazers_count || 0) - (a.stargazers_count || 0))
